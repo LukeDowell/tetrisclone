@@ -26,7 +26,7 @@ public class Block {
      * Returns an array that represents what this block would look like if it was
      * rotated clockwise by 90 degrees
      */
-    public int[][] rotateCW() {
+    public void rotateCW() {
         final int M = this.type.shape.length;
         final int N = this.type.shape[0].length;
         int[][] ret = new int[N][M];
@@ -35,7 +35,7 @@ public class Block {
                 ret[c][M-1-r] = this.type.shape[r][c];
             }
         }
-        return ret;
+        this.type.shape = ret;
     }
 
     public BlockType getType() {
