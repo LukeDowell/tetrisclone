@@ -1,7 +1,5 @@
 package org.badgrades.lukedowell;
 
-import com.badlogic.gdx.graphics.Color;
-
 import java.awt.*;
 
 /**
@@ -16,8 +14,15 @@ public class Block {
      */
     private Point position;
 
+    /**
+     * The type of this block
+     */
     private BlockType type;
 
+    /**
+     * Creates a new block with the given type
+     * @param type
+     */
     public Block(BlockType type) {
         this.type = type;
     }
@@ -26,7 +31,7 @@ public class Block {
      * Returns an array that represents what this block would look like if it was
      * rotated clockwise by 90 degrees
      */
-    public void rotateCW() {
+    public void rotateClockwise() {
         final int M = this.type.shape.length;
         final int N = this.type.shape[0].length;
         int[][] ret = new int[N][M];
@@ -36,6 +41,13 @@ public class Block {
             }
         }
         this.type.shape = ret;
+    }
+
+    /**
+     *
+     */
+    public void rotateCounterclockwise() {
+        //TODO
     }
 
     public BlockType getType() {
@@ -51,74 +63,12 @@ public class Block {
     }
 
     /**
-     * Enumerated list of all the different block types this game supports
-     * and their associate color
+     * Creates a block with a random type and returns it
+     * @return
      */
-    public enum BlockType {
-
-        I(new int[][] {
-                {1},
-                {1},
-                {1},
-                {1}
-        }, Color.GREEN),
-
-        J(new int[][] {
-                {0, 1},
-                {0, 1},
-                {1, 1},
-        }, Color.BLACK),
-
-        L(new int[][] {
-                {1, 0},
-                {1, 0},
-                {1, 1},
-        }, Color.BLUE),
-
-        O(new int[][]{
-                {1, 1},
-                {1, 1}
-        }, Color.YELLOW),
-
-        S(new int[][]{
-                {0, 1, 1},
-                {1, 1, 0}
-        }, Color.ORANGE),
-
-        T(new int[][]{
-                {1, 1, 1},
-                {0, 1, 0},
-                {0, 1, 0}
-        }, Color.RED),
-
-        Z(new int[][]{
-                {1, 1, 0},
-                {0, 1, 1}
-        }, Color.MAGENTA);
-
-        /**
-         * A 2d array that contains the current shape of this block. With 1 representing a block and 0 representing
-         * empty space, an L block could look like
-         *
-         * [0, 0, 1]
-         * [1, 1, 1]
-         *
-         * but also the following after being rotated:
-         *
-         * [1, 0]
-         * [1, 0]
-         * [1, 1]
-         *
-         */
-        int[][] shape;
-
-        /** The color the block will be rendered at */
-        Color color;
-
-        BlockType(int[][] shape, Color color) {
-            this.shape = shape;
-            this.color = color;
-        }
-
+    public static Block getRandomBlock() {
+        int numBlockTypes = BlockType.values().length;
+        int randomIndex = (int) Math.floor(Math.random() * numBlockTypes);
+        return new Block(BlockType.values()[randomIndex]);
     }
 }

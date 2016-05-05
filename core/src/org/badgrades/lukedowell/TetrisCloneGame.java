@@ -8,13 +8,11 @@ import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 
 import java.awt.*;
-import java.util.LinkedList;
+
+import static org.badgrades.lukedowell.BlockMap.MAP_HEIGHT;
+import static org.badgrades.lukedowell.BlockMap.MAP_WIDTH;
 
 public class TetrisCloneGame extends ApplicationAdapter {
-
-	/** The width and height of the tetris game area */
-	private static final int MAP_WIDTH = 10;
-	private static final int MAP_HEIGHT = 20;
 
 	/** The tile size of one block */
 	private static final int BLOCK_SIZE = 32;
@@ -22,39 +20,26 @@ public class TetrisCloneGame extends ApplicationAdapter {
 	/** How long between block movements in milliseconds */
 	private static final long TICK_LENGTH = 1000;
 
+	/** How long to wait between placing a block and spawning a new one in millis */
+	private static final long ARE_DELAY_LENGTH = 500;
+
 	/** The time in millis the last time we updated the block's position */
-	private static long last_rendered = 0;
+	private static long last_time_dropped = 0;
 
-	/** The 2d grid tetris is played on */
-	private int[][] gamemap;
-
-	/** A list of upcoming blocks */
-	private LinkedList<Block> blockQueue;
-
-	/** A list of blocks currently on the grid */
-	private LinkedList<Block> activeBlocks;
+	/** The time in millis that the most recent block was set down */
+	private static long last_time_placed = 0;
 
 	private OrthographicCamera camera;
 	private ShapeRenderer shapeRenderer;
+	private BlockMap blockMap;
 
 	@Override
 	public void create () {
-		gamemap = new int[MAP_HEIGHT][MAP_WIDTH];
 		camera = new OrthographicCamera();
 		camera.setToOrtho(false, BLOCK_SIZE * MAP_WIDTH, BLOCK_SIZE * MAP_HEIGHT);
 		shapeRenderer = new ShapeRenderer();
-		blockQueue = new LinkedList<Block>();
-		activeBlocks = new LinkedList<Block>();
-
-		// Inject blocks into queue
-		for(int i = 0; i < 30; i++) {
-			blockQueue.push(getRandomBlock());
-		}
-
-		// Place one block on the screen
-		Block someBlock = blockQueue.pop();
-		someBlock.setPosition(new Point(5, 5));
-		activeBlocks.add(someBlock);
+		blockMap = new BlockMap();
+		blockMap.spawnBlock(new Block(BlockType.L));
 	}
 
 	@Override
@@ -63,31 +48,15 @@ public class TetrisCloneGame extends ApplicationAdapter {
 		Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 
 		//////////////////
-		////// TICK //////
-		//////////////////
-
-		// CAN WE UPDATE
-		if(System.currentTimeMillis() - last_rendered >= TICK_LENGTH) {
-
-			// YES WE CAN
-			System.out.println("Updating block position");
-
-			// MOVE EM
-			activeBlocks.stream()
-					.filter(this::canBlockMove)
-					.forEach(this::moveBlock);
-
-			// RESET LAST_RENDERERD
-			last_rendered = System.currentTimeMillis();
-		}
-
-		//////////////////
 		///// INPUT  /////
 		//////////////////
 
 		// ROTATE LOGIC
 		if(Gdx.input.isKeyJustPressed(Input.Keys.SPACE)) {
-			activeBlocks.forEach(Block::rotateCW);
+			Block player = blockMap.getPlayerBlock();
+			if(player != null) {
+				player.rotateClockwise();
+			}
 		}
 
 		// SIDE TO SIDE LOGIC
@@ -99,8 +68,31 @@ public class TetrisCloneGame extends ApplicationAdapter {
 
 		}
 
-		// DROP IT LOW
+		//////////////////
+		////// TICK //////
+		//////////////////
 
+		// GRAVITY
+		if(System.currentTimeMillis() - last_time_dropped >= TICK_LENGTH) {
+
+			// YES WE CAN
+			System.out.println("Updating block position");
+
+			// TODO Implement SRS gravity, cells per tick
+			Block player = blockMap.getPlayerBlock();
+			if(blockMap.canBlockDrop(player)) {
+				Point oldPoint = player.getPosition();
+				player.setPosition(new Point(oldPoint.x, oldPoint.y - 2));
+			} else {
+				// TODO Set the block down
+			}
+
+			// RESET
+			last_time_dropped = System.currentTimeMillis();
+		}
+
+		// ARE TIME
+		// TODO
 
 		///////////////////
 		///// DRAWING /////
@@ -108,23 +100,9 @@ public class TetrisCloneGame extends ApplicationAdapter {
 
 		// DRAW DEM BLOCKS
 		shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
-		for(Block b : activeBlocks) {
-			drawBlock(b);
-		}
+		blockMap.getActiveBlocks().forEach(this::drawBlock);
+		drawBlock(blockMap.getPlayerBlock());
 		shapeRenderer.end();
-	}
-
-	private void moveBlock(Block b) {
-
-	}
-
-	/**
-	 *
-	 * @param b
-	 * @return
-     */
-	private boolean canBlockMove(Block b) {
-		return true;
 	}
 
 	/**
@@ -152,16 +130,5 @@ public class TetrisCloneGame extends ApplicationAdapter {
 				}
 			}
 		}
-	}
-
-	/**
-	 *
-	 * @return
-     */
-	private Block getRandomBlock() {
-		int numBlockTypes = Block.BlockType.values().length;
-		int randomIndex = (int) Math.floor(Math.random() * numBlockTypes);
-		System.out.println("Picking block at index: " + randomIndex);
-		return new Block(Block.BlockType.values()[randomIndex]);
 	}
 }
