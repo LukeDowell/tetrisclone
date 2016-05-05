@@ -44,17 +44,26 @@ public class BlockMap {
      * @param b
      * @return
      */
-    public boolean canBlockDrop(Block b) {
+    public boolean canBlockMove(Block b, Point p) {
         // The block CANNOT drop if:
         // 1. A filled portion of the bounding box has reached a wall
         // 2. A filled portion of the bounding box will run into an existing block
 
+        // Does it matter if these points are negative?
+        // TODO this is probably broken
+        Point diffPos = new Point(
+                b.getPosition().x - p.x,
+                b.getPosition().y - p.y);
+
         for(Point blockPos : b.getFilledPoints()) {
-            if(blockPos.y - 1 < 0) {
+            int mapX = blockPos.x - diffPos.x;
+            int mapY = blockPos.y - diffPos.y;
+
+            if(mapX > MAP_WIDTH || mapX < 0 || mapY < 0 || mapY > MAP_HEIGHT) {
                 return false;
             }
 
-            if(blockPos.y <= MAP_HEIGHT && map[blockPos.x][blockPos.y] == 1) {
+            if(map[mapX][mapY] > 0) {
                 return false;
             }
         }
@@ -67,6 +76,7 @@ public class BlockMap {
             map[blockPos.x][blockPos.y] = 1;
         }
 
+        activeBlocks.add(playerBlock);
         playerBlock = null;
     }
 
@@ -91,17 +101,8 @@ public class BlockMap {
     }
 
     public void spawnBlock(Block b) {
-        // Randomly rotate block
-        // Pick random location at the top of the map within bounds of block
-        int numRotations = (int) Math.floor((Math.random() * 10) + 1);
-        for(int i = 0; i < numRotations; i++) {
-            b.rotateClockwise();
-        }
-
-        Point spawnPoint = new Point(5, 15);
+        Point spawnPoint = new Point(5, 16);
         b.setPosition(spawnPoint);
         playerBlock = b;
     }
-
-
 }

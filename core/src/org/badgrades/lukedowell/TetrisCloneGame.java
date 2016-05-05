@@ -66,7 +66,7 @@ public class TetrisCloneGame extends ApplicationAdapter {
 			if(player != null) {
 				Point playerPos = player.getPosition();
 				Point newPos = new Point(playerPos.x - 1, playerPos.y);
-				if(newPos.x >= 0 && newPos.x < BlockMap.MAP_WIDTH) {
+				if(blockMap.canBlockMove(player, newPos)) {
 					player.setPosition(newPos);
 				}
 			}
@@ -77,7 +77,7 @@ public class TetrisCloneGame extends ApplicationAdapter {
 			if(player != null) {
 				Point playerPos = player.getPosition();
 				Point newPos = new Point(playerPos.x + 1, playerPos.y);
-				if(newPos.x >= 0 && newPos.x < BlockMap.MAP_WIDTH) {
+				if(blockMap.canBlockMove(player, newPos)) {
 					player.setPosition(newPos);
 				}
 			}
@@ -88,18 +88,20 @@ public class TetrisCloneGame extends ApplicationAdapter {
 		//////////////////
 
 		// GRAVITY
-		if(System.currentTimeMillis() - last_time_dropped >= TICK_LENGTH) {
+		if(System.currentTimeMillis() - last_time_dropped >= TICK_LENGTH && blockMap.getPlayerBlock() != null) {
 
 			Block player = blockMap.getPlayerBlock();
 			Point playerPos = player.getPosition();
+			Point destPos = new Point(playerPos.x, playerPos.y - 1);
 
-			if (blockMap.canBlockDrop(player)) {
+			if (blockMap.canBlockMove(player, destPos)) {
 
-				player.setPosition(new Point(playerPos.x, playerPos.y - 1));
+				player.setPosition(destPos);
 
 			} else {
 
 				blockMap.placePlayerBlock();
+				blockMap.spawnBlock();
 			}
 
 			// RESET
