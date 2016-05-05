@@ -26,8 +26,15 @@ public class BlockMap {
     private Block playerBlock;
 
     public BlockMap() {
-        map = new int[MAP_HEIGHT][MAP_WIDTH];
+        map = new int[MAP_WIDTH][MAP_HEIGHT];
         activeBlocks = new LinkedList<>();
+        blockQueue = new LinkedList<>();
+
+        // init queue
+        for(int i = 0; i < 30; i++) {
+            int randomTypeIndex = (int) Math.floor(Math.random() * BlockType.values().length);
+            blockQueue.add(new Block(BlockType.values()[randomTypeIndex]));
+        }
     }
 
     /**
@@ -38,7 +45,29 @@ public class BlockMap {
      * @return
      */
     public boolean canBlockDrop(Block b) {
+        // The block CANNOT drop if:
+        // 1. A filled portion of the bounding box has reached a wall
+        // 2. A filled portion of the bounding box will run into an existing block
+
+        for(Point blockPos : b.getFilledPoints()) {
+            if(blockPos.y - 1 < 0) {
+                return false;
+            }
+
+            if(blockPos.y <= MAP_HEIGHT && map[blockPos.x][blockPos.y] == 1) {
+                return false;
+            }
+        }
+
         return true;
+    }
+
+    public void placePlayerBlock() {
+        for(Point blockPos : playerBlock.getFilledPoints()) {
+            map[blockPos.x][blockPos.y] = 1;
+        }
+
+        playerBlock = null;
     }
 
     /**
@@ -57,6 +86,10 @@ public class BlockMap {
         return activeBlocks;
     }
 
+    public void spawnBlock() {
+        this.spawnBlock(blockQueue.pop());
+    }
+
     public void spawnBlock(Block b) {
         // Randomly rotate block
         // Pick random location at the top of the map within bounds of block
@@ -65,8 +98,10 @@ public class BlockMap {
             b.rotateClockwise();
         }
 
-        Point spawnPoint = new Point(6, 20);
+        Point spawnPoint = new Point(5, 15);
         b.setPosition(spawnPoint);
         playerBlock = b;
     }
+
+
 }

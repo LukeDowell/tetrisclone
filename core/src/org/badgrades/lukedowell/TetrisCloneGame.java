@@ -8,6 +8,7 @@ import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 
 import java.awt.*;
+import java.util.LinkedList;
 
 import static org.badgrades.lukedowell.BlockMap.MAP_HEIGHT;
 import static org.badgrades.lukedowell.BlockMap.MAP_WIDTH;
@@ -18,7 +19,7 @@ public class TetrisCloneGame extends ApplicationAdapter {
 	private static final int BLOCK_SIZE = 32;
 
 	/** How long between block movements in milliseconds */
-	private static final long TICK_LENGTH = 1000;
+	private static final long TICK_LENGTH = 500;
 
 	/** How long to wait between placing a block and spawning a new one in millis */
 	private static final long ARE_DELAY_LENGTH = 500;
@@ -39,7 +40,7 @@ public class TetrisCloneGame extends ApplicationAdapter {
 		camera.setToOrtho(false, BLOCK_SIZE * MAP_WIDTH, BLOCK_SIZE * MAP_HEIGHT);
 		shapeRenderer = new ShapeRenderer();
 		blockMap = new BlockMap();
-		blockMap.spawnBlock(new Block(BlockType.L));
+		blockMap.spawnBlock();
 	}
 
 	@Override
@@ -61,11 +62,25 @@ public class TetrisCloneGame extends ApplicationAdapter {
 
 		// SIDE TO SIDE LOGIC
 		if(Gdx.input.isKeyJustPressed(Input.Keys.LEFT)) {
-
+			Block player = blockMap.getPlayerBlock();
+			if(player != null) {
+				Point playerPos = player.getPosition();
+				Point newPos = new Point(playerPos.x - 1, playerPos.y);
+				if(newPos.x >= 0 && newPos.x < BlockMap.MAP_WIDTH) {
+					player.setPosition(newPos);
+				}
+			}
 		}
 
 		if(Gdx.input.isKeyJustPressed(Input.Keys.RIGHT)) {
-
+			Block player = blockMap.getPlayerBlock();
+			if(player != null) {
+				Point playerPos = player.getPosition();
+				Point newPos = new Point(playerPos.x + 1, playerPos.y);
+				if(newPos.x >= 0 && newPos.x < BlockMap.MAP_WIDTH) {
+					player.setPosition(newPos);
+				}
+			}
 		}
 
 		//////////////////
@@ -75,16 +90,16 @@ public class TetrisCloneGame extends ApplicationAdapter {
 		// GRAVITY
 		if(System.currentTimeMillis() - last_time_dropped >= TICK_LENGTH) {
 
-			// YES WE CAN
-			System.out.println("Updating block position");
-
-			// TODO Implement SRS gravity, cells per tick
 			Block player = blockMap.getPlayerBlock();
-			if(blockMap.canBlockDrop(player)) {
-				Point oldPoint = player.getPosition();
-				player.setPosition(new Point(oldPoint.x, oldPoint.y - 2));
+			Point playerPos = player.getPosition();
+
+			if (blockMap.canBlockDrop(player)) {
+
+				player.setPosition(new Point(playerPos.x, playerPos.y - 1));
+
 			} else {
-				// TODO Set the block down
+
+				blockMap.placePlayerBlock();
 			}
 
 			// RESET
@@ -101,7 +116,9 @@ public class TetrisCloneGame extends ApplicationAdapter {
 		// DRAW DEM BLOCKS
 		shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
 		blockMap.getActiveBlocks().forEach(this::drawBlock);
-		drawBlock(blockMap.getPlayerBlock());
+		if(blockMap.getPlayerBlock() != null) {
+			drawBlock(blockMap.getPlayerBlock());
+		}
 		shapeRenderer.end();
 	}
 

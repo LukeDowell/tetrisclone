@@ -1,6 +1,8 @@
 package org.badgrades.lukedowell;
 
 import java.awt.*;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Created by ldowell on 5/4/16.
@@ -48,6 +50,28 @@ public class Block {
      */
     public void rotateCounterclockwise() {
         //TODO
+    }
+
+    /**
+     * Returns points that are taken up by filled portions of this block's bounding box.
+     * If an L block was placed at location (4, 4) then this method would return points with xy
+     * values of: (5, 4), (5, 5), (5, 6) and (6, 6)
+     * @return
+     */
+    public List<Point> getFilledPoints() {
+        ArrayList<Point> pointList = new ArrayList<>();
+        int originX = this.position.x;
+        int originY = this.position.y;
+
+        for(int x = 0; x < this.type.shape.length; x++) {
+            for(int y = 0; y < this.type.shape[0].length; y++) {
+                if(this.type.shape[x][y] == 1) {
+                    pointList.add(new Point(originX + x, originY - y));
+                }
+            }
+        }
+
+        return pointList;
     }
 
     public BlockType getType() {
