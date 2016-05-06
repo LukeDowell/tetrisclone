@@ -12,22 +12,22 @@ import com.badlogic.gdx.graphics.Color;
 public enum BlockType {
 
     I(new int[][] {
-            {0, 0, 1, 0},
-            {0, 0, 1, 0},
-            {0, 0, 1, 0},
-            {0, 0, 1, 0}
+            { 1 },
+            { 1 },
+            { 1 },
+            { 1 }
     }, Color.GREEN),
 
     J(new int[][] {
-            {0, 1, 0},
-            {0, 1, 0},
-            {1, 1, 0},
+            {0, 1},
+            {0, 1},
+            {1, 1},
     }, Color.BLACK),
 
     L(new int[][] {
-            {0, 1, 0},
-            {0, 1, 0},
-            {0, 1, 1},
+            {1, 0},
+            {1, 0},
+            {1, 1},
     }, Color.BLUE),
 
     O(new int[][]{
@@ -36,21 +36,18 @@ public enum BlockType {
     }, Color.YELLOW),
 
     S(new int[][]{
-            {0, 0, 0},
             {0, 1, 1},
             {1, 1, 0}
     }, Color.ORANGE),
 
     T(new int[][]{
-            {0, 0, 0},
             {1, 1, 1},
             {0, 1, 0}
     }, Color.RED),
 
     Z(new int[][]{
             {1, 1, 0},
-            {0, 1, 1},
-            {0, 0, 0}
+            {0, 1, 1}
     }, Color.MAGENTA);
 
     /**

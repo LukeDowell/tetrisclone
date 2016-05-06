@@ -66,6 +66,7 @@ public class Block {
         for(int x = 0; x < this.type.shape.length; x++) {
             for(int y = 0; y < this.type.shape[0].length; y++) {
                 if(this.type.shape[x][y] == 1) {
+                    // TODO maybe subtract y axis
                     pointList.add(new Point(originX + x, originY - y));
                 }
             }

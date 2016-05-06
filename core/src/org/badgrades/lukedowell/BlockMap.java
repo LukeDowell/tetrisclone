@@ -3,6 +3,11 @@ package org.badgrades.lukedowell;
 import java.awt.*;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
+
+import static com.badlogic.gdx.graphics.g2d.ParticleEmitter.SpawnShape.point;
+import static com.sun.tools.doclets.formats.html.markup.HtmlStyle.block;
 
 /**
  * Created by ldowell on 5/5/16.
@@ -12,9 +17,6 @@ public class BlockMap {
     /** The width and height of the tetris game area */
     public static final int MAP_WIDTH = 10;
     public static final int MAP_HEIGHT = 20;
-
-    /** The 2d grid that represents the game map */
-    private int[][] map;
 
     /** A list of upcoming blocks */
     private LinkedList<Block> blockQueue;
@@ -26,7 +28,6 @@ public class BlockMap {
     private Block playerBlock;
 
     public BlockMap() {
-        map = new int[MAP_WIDTH][MAP_HEIGHT];
         activeBlocks = new LinkedList<>();
         blockQueue = new LinkedList<>();
 
@@ -45,39 +46,40 @@ public class BlockMap {
      * @return
      */
     public boolean canBlockMove(Block b, Point p) {
-        // The block CANNOT drop if:
-        // 1. A filled portion of the bounding box has reached a wall
-        // 2. A filled portion of the bounding box will run into an existing block
-
-        // Does it matter if these points are negative?
-        // TODO this is probably broken
         Point diffPos = new Point(
                 b.getPosition().x - p.x,
                 b.getPosition().y - p.y);
 
-        for(Point blockPos : b.getFilledPoints()) {
-            int mapX = blockPos.x - diffPos.x;
-            int mapY = blockPos.y - diffPos.y;
-
-            if(mapX > MAP_WIDTH || mapX < 0 || mapY < 0 || mapY > MAP_HEIGHT) {
-                return false;
+        // Create this here so we aren't doing it over and over later
+        List<Point> activeBlockPoints = activeBlocks.stream().flatMap(block -> {
+            // We don't want to check against ourselves
+            if(!block.equals(b)) {
+                return block.getFilledPoints().stream();
             }
+            return null;
+        }).collect(Collectors.toList());
 
-            if(map[mapX][mapY] > 0) {
-                return false;
-            }
-        }
+        Optional canMove = b.getFilledPoints().stream()
+                .filter(point -> {
+                    // Filter out the points that are within the bounds of the map
+                    int mapX = point.x - diffPos.x;
+                    int mapY = point.y - diffPos.y;
 
-        return true;
+                    return !(mapX > MAP_WIDTH - 1 || mapX <= 0 || mapY <= 0 || mapY > MAP_HEIGHT - 1); // I shouldn't have to do these -1's here, how do design around that?
+                })
+                .filter(activeBlockPoints::contains).findAny();
+
+        return !canMove.isPresent();
     }
 
-    public void placePlayerBlock() {
-        for(Point blockPos : playerBlock.getFilledPoints()) {
-            map[blockPos.x][blockPos.y] = 1;
-        }
-
-        activeBlocks.add(playerBlock);
-        playerBlock = null;
+    /**
+     * Writes the block to the map array, then adds it to a
+     * list of saved blocks.
+     *
+     * @param b
+     */
+    public void saveBlock(Block b) {
+        activeBlocks.add(b);
     }
 
     /**

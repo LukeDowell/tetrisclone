@@ -100,7 +100,8 @@ public class TetrisCloneGame extends ApplicationAdapter {
 
 			} else {
 
-				blockMap.placePlayerBlock();
+				blockMap.saveBlock(player);
+				// TODO reset player block
 				blockMap.spawnBlock();
 			}
 
