@@ -65,10 +65,10 @@ public enum BlockType {
      * [0, 1, 1]
      *
      */
-    int[][] shape;
+    final int[][] shape;
 
     /** The color the block will be rendered at */
-    Color color;
+    final Color color;
 
     BlockType(int[][] shape, Color color) {
         this.shape = shape;

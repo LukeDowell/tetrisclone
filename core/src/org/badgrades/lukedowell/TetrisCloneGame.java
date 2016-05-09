@@ -39,6 +39,7 @@ public class TetrisCloneGame extends ApplicationAdapter {
 		camera = new OrthographicCamera();
 		camera.setToOrtho(false, BLOCK_SIZE * MAP_WIDTH, BLOCK_SIZE * MAP_HEIGHT);
 		shapeRenderer = new ShapeRenderer();
+		shapeRenderer.setProjectionMatrix(camera.combined);
 		blockMap = new BlockMap();
 		blockMap.spawnBlock();
 	}
@@ -66,7 +67,7 @@ public class TetrisCloneGame extends ApplicationAdapter {
 			if(player != null) {
 				Point playerPos = player.getPosition();
 				Point newPos = new Point(playerPos.x - 1, playerPos.y);
-				if(blockMap.canBlockMove(player, newPos)) {
+				if(blockMap.canBlockMoveTo(player, newPos)) {
 					player.setPosition(newPos);
 				}
 			}
@@ -77,7 +78,7 @@ public class TetrisCloneGame extends ApplicationAdapter {
 			if(player != null) {
 				Point playerPos = player.getPosition();
 				Point newPos = new Point(playerPos.x + 1, playerPos.y);
-				if(blockMap.canBlockMove(player, newPos)) {
+				if(blockMap.canBlockMoveTo(player, newPos)) {
 					player.setPosition(newPos);
 				}
 			}
@@ -88,20 +89,18 @@ public class TetrisCloneGame extends ApplicationAdapter {
 		//////////////////
 
 		// GRAVITY
-		if(System.currentTimeMillis() - last_time_dropped >= TICK_LENGTH && blockMap.getPlayerBlock() != null) {
+		if(System.currentTimeMillis() - last_time_dropped >= TICK_LENGTH) {
 
 			Block player = blockMap.getPlayerBlock();
 			Point playerPos = player.getPosition();
 			Point destPos = new Point(playerPos.x, playerPos.y - 1);
 
-			if (blockMap.canBlockMove(player, destPos)) {
+			if (blockMap.canBlockMoveTo(player, destPos)) {
 
 				player.setPosition(destPos);
 
 			} else {
 
-				blockMap.saveBlock(player);
-				// TODO reset player block
 				blockMap.spawnBlock();
 			}
 
@@ -132,23 +131,25 @@ public class TetrisCloneGame extends ApplicationAdapter {
 	 * @param block The block to draw
      */
 	private void drawBlock (Block block) {
-		int originBlockX = block.getPosition().x;
-		int originBlockY = block.getPosition().y;
-		int[][] shape = block.getType().shape;
 		shapeRenderer.setColor(block.getType().color);
 
-		for(int x = 0; x < shape.length; x++) {
-			// Convert from grid units to drawing units
-			int drawX = (originBlockX + x) * BLOCK_SIZE;
-
-			for(int y = 0; y < shape[0].length; y++) {
-				int drawY = (originBlockY + y) * BLOCK_SIZE;
-
-				if(shape[x][y] == 1) {
-					// We are supposed to draw this!
-					shapeRenderer.rect(drawX, drawY, BLOCK_SIZE, BLOCK_SIZE);
-				}
-			}
+		for(Point point : block.getFilledPoints(true)) {
+			shapeRenderer.rect(point.x * BLOCK_SIZE, point.y * BLOCK_SIZE, BLOCK_SIZE, BLOCK_SIZE);
 		}
+
+
+//		for(int x = 0; x < shape.length; x++) {
+//			// Convert from grid units to drawing units
+//			int drawX = (originBlockX + x) * BLOCK_SIZE;
+//
+//			for(int y = 0; y < shape[0].length; y++) {
+//				int drawY = (originBlockY + y) * BLOCK_SIZE;
+//
+//				if(shape[x][y] == 1) {
+//					// We are supposed to draw this!
+//					shapeRenderer.rect(drawX, drawY, BLOCK_SIZE, BLOCK_SIZE);
+//				}
+//			}
+//		}
 	}
 }

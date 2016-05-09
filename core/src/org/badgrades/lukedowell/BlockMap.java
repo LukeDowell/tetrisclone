@@ -1,13 +1,9 @@
 package org.badgrades.lukedowell;
 
 import java.awt.*;
-import java.util.LinkedList;
+import java.util.*;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
-
-import static com.badlogic.gdx.graphics.g2d.ParticleEmitter.SpawnShape.point;
-import static com.sun.tools.doclets.formats.html.markup.HtmlStyle.block;
 
 /**
  * Created by ldowell on 5/5/16.
@@ -21,11 +17,8 @@ public class BlockMap {
     /** A list of upcoming blocks */
     private LinkedList<Block> blockQueue;
 
-    /** A list of blocks currently on the grid */
+    /** A map of blocks, their positions are the keys */
     private LinkedList<Block> activeBlocks;
-
-    /** The block that is controlled by the player */
-    private Block playerBlock;
 
     public BlockMap() {
         activeBlocks = new LinkedList<>();
@@ -33,62 +26,48 @@ public class BlockMap {
 
         // init queue
         for(int i = 0; i < 30; i++) {
-            int randomTypeIndex = (int) Math.floor(Math.random() * BlockType.values().length);
-            blockQueue.add(new Block(BlockType.values()[randomTypeIndex]));
+            blockQueue.add(Block.getRandomBlock());
         }
     }
 
-    /**
-     * Checks to see if this block will collide with any other block
-     * on the next gravity tick
-     *
-     * @param b
-     * @return
-     */
-    public boolean canBlockMove(Block b, Point p) {
-        Point diffPos = new Point(
-                b.getPosition().x - p.x,
-                b.getPosition().y - p.y);
-
-        // Create this here so we aren't doing it over and over later
-        List<Point> activeBlockPoints = activeBlocks.stream().flatMap(block -> {
-            // We don't want to check against ourselves
-            if(!block.equals(b)) {
-                return block.getFilledPoints().stream();
-            }
-            return null;
-        }).collect(Collectors.toList());
-
-        Optional canMove = b.getFilledPoints().stream()
-                .filter(point -> {
-                    // Filter out the points that are within the bounds of the map
-                    int mapX = point.x - diffPos.x;
-                    int mapY = point.y - diffPos.y;
-
-                    return !(mapX > MAP_WIDTH - 1 || mapX <= 0 || mapY <= 0 || mapY > MAP_HEIGHT - 1); // I shouldn't have to do these -1's here, how do design around that?
-                })
-                .filter(activeBlockPoints::contains).findAny();
-
-        return !canMove.isPresent();
-    }
-
-    /**
-     * Writes the block to the map array, then adds it to a
-     * list of saved blocks.
-     *
-     * @param b
-     */
-    public void saveBlock(Block b) {
-        activeBlocks.add(b);
-    }
 
     /**
      * Gets the block being controlled by the player
      * @return
      */
     public Block getPlayerBlock() {
-        return playerBlock;
+        return activeBlocks.getLast();
     }
+
+    public boolean canBlockMoveTo(Block b, Point p) {
+        Block potentialBlock = new Block(b.getType());
+        potentialBlock.setPosition(p);
+
+        if(!isWithinBounds(potentialBlock)) {
+            return false;
+        }
+
+        List<Block> blockCollisions = activeBlocks.stream()
+                .filter(block -> block.isCollidingWith(potentialBlock)) // Filter out any blocks that wont collide
+                .collect(Collectors.toList());
+
+        return blockCollisions.size() == 0; // If there are no blocks to collide with, the block can move to the given point
+    }
+
+    /**
+     * Whether or not this block is inside the bounds of the map
+     * @param b
+     * @return
+     */
+    public boolean isWithinBounds(Block b) {
+        for(Point p : b.getFilledPoints(true)) {
+            if(p.x > MAP_WIDTH || p.x < 0 || p.y < 0 || p.y > MAP_HEIGHT + 4) {
+                return false;
+            }
+        }
+
+        return true;
+     }
 
     /**
      *
@@ -105,6 +84,32 @@ public class BlockMap {
     public void spawnBlock(Block b) {
         Point spawnPoint = new Point(5, 16);
         b.setPosition(spawnPoint);
-        playerBlock = b;
+        activeBlocks.add(b);
+    }
+
+    @Override
+    public String toString() {
+        int[][] grid = new int[MAP_WIDTH][MAP_HEIGHT];
+        StringBuilder sb = new StringBuilder();
+        for(int x = 0; x < MAP_WIDTH; x++) {
+            for(int y = 0; y < MAP_HEIGHT; y++) {
+                grid[x][y] = 0;
+            }
+        }
+
+        getActiveBlocks()
+                .stream()
+                .forEach(block -> block.getFilledPoints(true)
+                        .stream()
+                        .forEach(point -> grid[point.x][point.y] = 1));
+
+        for(int x = 0; x < MAP_WIDTH; x++) {
+            for(int y = 0; y < MAP_HEIGHT; y++) {
+                sb.append(grid[x][y] + " - ");
+            }
+            sb.append("\n");
+        }
+
+        return sb.toString();
     }
 }

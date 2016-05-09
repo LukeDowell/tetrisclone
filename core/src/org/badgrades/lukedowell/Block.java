@@ -1,6 +1,7 @@
 package org.badgrades.lukedowell;
 
 import java.awt.*;
+import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -9,12 +10,8 @@ import java.util.List;
  */
 public class Block {
 
-
-    /**
-     * Stores the X+Y coordinates for this block, using shape[0][0] as
-     * an origin point.
-     */
-    private Point position;
+    public static int count = 0;
+    private final int id;
 
     /**
      * The type of this block
@@ -22,11 +19,23 @@ public class Block {
     private BlockType type;
 
     /**
+     * The mutable copy of type.shape, so we dont affect other blocks of the
+     * same type when we move
+     */
+    private int[][] shape;
+
+    private Point position;
+
+    /**
      * Creates a new block with the given type
      * @param type
      */
     public Block(BlockType type) {
+        count++;
+        id = count;
         this.type = type;
+        this.shape = new int[type.shape.length][type.shape[0].length];
+        System.arraycopy(this.type.shape, 0, this.shape, 0, this.shape.length);
     }
 
     /**
@@ -34,57 +43,55 @@ public class Block {
      * rotated clockwise by 90 degrees
      */
     public void rotateClockwise() {
-        final int M = this.type.shape.length;
-        final int N = this.type.shape[0].length;
+        final int M = this.shape.length;
+        final int N = this.shape[0].length;
         int[][] ret = new int[N][M];
         for (int r = 0; r < M; r++) {
             for (int c = 0; c < N; c++) {
-                ret[c][M-1-r] = this.type.shape[r][c];
+                ret[c][M-1-r] = this.shape[r][c];
             }
         }
-        this.type.shape = ret;
+        this.shape = ret;
     }
 
-    /**
-     *
-     */
-    public void rotateCounterclockwise() {
-        //TODO
-    }
 
-    /**
-     * Returns points that are taken up by filled portions of this block's bounding box.
-     * If an L block was placed at location (4, 4) then this method would return points with xy
-     * values of: (5, 4), (5, 5), (5, 6) and (6, 6)
-     * @return
-     */
-    public List<Point> getFilledPoints() {
-        ArrayList<Point> pointList = new ArrayList<>();
-        int originX = this.position.x;
-        int originY = this.position.y;
-
-        for(int x = 0; x < this.type.shape.length; x++) {
-            for(int y = 0; y < this.type.shape[0].length; y++) {
-                if(this.type.shape[x][y] == 1) {
-                    // TODO maybe subtract y axis
-                    pointList.add(new Point(originX + x, originY - y));
-                }
-            }
-        }
-
-        return pointList;
-    }
 
     public BlockType getType() {
         return type;
     }
 
-    public void setPosition(Point point) {
-        this.position = point;
+    /**
+     * Returns a list of points representing the offset values
+     * @return
+     */
+    public List<Point> getFilledPoints(boolean absolute) {
+        ArrayList<Point> offsetPoints = new ArrayList<>();
+        for(int xOffset = 0; xOffset < this.shape.length; xOffset++) {
+            for(int yOffset = 0; yOffset < this.shape[0].length; yOffset++) {
+                if(this.shape[xOffset][yOffset] > 0) {
+                    if(absolute)
+                        offsetPoints.add(new Point(xOffset + this.position.x, yOffset + this.position.y));
+                    else
+                        offsetPoints.add(new Point(xOffset, yOffset));
+                }
+
+            }
+        }
+        return offsetPoints;
     }
 
-    public Point getPosition() {
-        return this.position;
+    /**
+     *
+     * @param otherBlock
+     * @return
+     */
+    public boolean isCollidingWith(Block otherBlock) {
+        List<Point> myPoints = this.getFilledPoints(true);
+        List<Point> otherPoints = otherBlock.getFilledPoints(true);
+
+        int originalSize = myPoints.size();
+        myPoints.removeAll(otherPoints);
+        return myPoints.size() != originalSize;
     }
 
     /**
@@ -95,5 +102,23 @@ public class Block {
         int numBlockTypes = BlockType.values().length;
         int randomIndex = (int) Math.floor(Math.random() * numBlockTypes);
         return new Block(BlockType.values()[randomIndex]);
+    }
+
+    public int[][] getShape() {
+        return shape;
+    }
+
+    public void setShape(int[][] shape) {
+        this.shape = shape;
+    }
+
+
+
+    public Point getPosition() {
+        return position;
+    }
+
+    public void setPosition(Point position) {
+        this.position = position;
     }
 }
