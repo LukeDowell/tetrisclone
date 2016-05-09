@@ -72,7 +72,6 @@ public class TetrisCloneGame extends ApplicationAdapter {
 
 		// SIDE TO SIDE LOGIC
 		if(Gdx.input.isKeyJustPressed(Input.Keys.LEFT)) {
-			System.out.println("LEFT");
 			Block player = blockMap.getPlayerBlock();
 			if(player != null) {
 				Point playerPos = player.getPosition();
@@ -84,7 +83,6 @@ public class TetrisCloneGame extends ApplicationAdapter {
 		}
 
 		if(Gdx.input.isKeyJustPressed(Input.Keys.RIGHT)) {
-			System.out.println("RIGHT");
 			Block player = blockMap.getPlayerBlock();
 			if(player != null) {
 				Point playerPos = player.getPosition();

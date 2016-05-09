@@ -3,6 +3,7 @@ package org.badgrades.lukedowell;
 import java.awt.*;
 import java.lang.reflect.Array;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -29,8 +30,7 @@ public class Block {
      */
     public Block(BlockType type) {
         this.type = type;
-        this.shape = new int[type.shape.length][type.shape[0].length];
-        System.arraycopy(this.type.shape, 0, this.shape, 0, this.shape.length);
+        this.shape = Arrays.stream(this.type.shape).map(int[]::clone).toArray(int[][]::new); // Copies array
     }
 
     /**
@@ -49,6 +49,28 @@ public class Block {
         this.shape = ret;
     }
 
+    /**
+     * Since blocks can be rotated their 'width' changes. This method
+     * calculates the difference between the most-left point and the most-right
+     * point from a list of filled points.
+     *
+     * @return
+     */
+    public int getCurrentWidth() {
+        Point mostLeftPoint = new Point(0, 0);
+        Point mostRightPoint = new Point(0, 0);
+
+        List<Point> points = getFilledPoints(false);
+        for(Point p : points) {
+            if(p.x > mostRightPoint.x)
+                mostRightPoint = p;
+
+            if(p.x < mostLeftPoint.x)
+                mostLeftPoint = p;
+        }
+
+        return (mostRightPoint.x - mostLeftPoint.x) + 1;
+    }
 
 
     public BlockType getType() {
@@ -60,19 +82,18 @@ public class Block {
      * @return
      */
     public List<Point> getFilledPoints(boolean absolute) {
-        ArrayList<Point> offsetPoints = new ArrayList<>();
+        ArrayList<Point> points = new ArrayList<>();
         for(int xOffset = 0; xOffset < this.shape.length; xOffset++) {
             for(int yOffset = 0; yOffset < this.shape[0].length; yOffset++) {
                 if(this.shape[xOffset][yOffset] > 0) {
                     if(absolute)
-                        offsetPoints.add(new Point(xOffset + this.position.x, yOffset + this.position.y));
+                        points.add(new Point(xOffset + this.position.x, yOffset + this.position.y));
                     else
-                        offsetPoints.add(new Point(xOffset, yOffset));
+                        points.add(new Point(xOffset, yOffset));
                 }
-
             }
         }
-        return offsetPoints;
+        return points;
     }
 
     /**

@@ -3,6 +3,7 @@ package org.badgrades.lukedowell;
 import java.awt.*;
 import java.util.*;
 import java.util.List;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 /**
@@ -47,12 +48,14 @@ public class BlockMap {
             return false;
         }
 
-        List<Block> blockCollisions = activeBlocks.stream()
-                .filter(block -> !b.equals(block))
-                .filter(block -> block.isCollidingWith(potentialBlock)) // Filter out any blocks that wont collide
-                .collect(Collectors.toList());
+        // Create a condition that returns true if a block collides with another block
+        Predicate<Block> doesCollidePredicate = (block) -> block.isCollidingWith(potentialBlock);
 
-        return blockCollisions.size() == 0; // If there are no blocks to collide with, the block can move to the given point
+        // Remove the block we are checking against, then return true if none of the remaining blocks collide
+        // with our potential future block.
+        return activeBlocks.stream()
+                .filter(block -> !b.equals(block)) // Don't check collisions against itself
+                .noneMatch(doesCollidePredicate);
     }
 
     /**
@@ -61,8 +64,11 @@ public class BlockMap {
      * @return
      */
     public boolean isWithinBounds(Block b) {
+        // Different shapes have different widths
+        int widthOffset = b.getCurrentWidth();
+
         for(Point p : b.getFilledPoints(true)) {
-            if(p.x > MAP_WIDTH || p.x < 0 || p.y < 0 || p.y > MAP_HEIGHT + 4) {
+            if(p.x > MAP_WIDTH - widthOffset || p.x < 0 || p.y < 0 || p.y > MAP_HEIGHT + 4) {
                 return false;
             }
         }
@@ -83,9 +89,14 @@ public class BlockMap {
     }
 
     public void spawnBlock(Block b) {
-        Point spawnPoint = new Point(5, 16);
+        Point spawnPoint = new Point(4, 22);
         b.setPosition(spawnPoint);
         activeBlocks.add(b);
+    }
+
+    public void clear() {
+        this.activeBlocks.clear();
+        this.blockQueue.clear();
     }
 
     @Override
