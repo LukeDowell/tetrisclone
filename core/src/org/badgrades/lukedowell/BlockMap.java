@@ -48,6 +48,7 @@ public class BlockMap {
         }
 
         List<Block> blockCollisions = activeBlocks.stream()
+                .filter(block -> !b.equals(block))
                 .filter(block -> block.isCollidingWith(potentialBlock)) // Filter out any blocks that wont collide
                 .collect(Collectors.toList());
 
@@ -67,7 +68,7 @@ public class BlockMap {
         }
 
         return true;
-     }
+    }
 
     /**
      *

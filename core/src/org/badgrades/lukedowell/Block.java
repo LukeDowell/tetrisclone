@@ -10,9 +10,6 @@ import java.util.List;
  */
 public class Block {
 
-    public static int count = 0;
-    private final int id;
-
     /**
      * The type of this block
      */
@@ -31,8 +28,6 @@ public class Block {
      * @param type
      */
     public Block(BlockType type) {
-        count++;
-        id = count;
         this.type = type;
         this.shape = new int[type.shape.length][type.shape[0].length];
         System.arraycopy(this.type.shape, 0, this.shape, 0, this.shape.length);

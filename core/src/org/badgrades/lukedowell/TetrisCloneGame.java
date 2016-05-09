@@ -3,13 +3,16 @@ package org.badgrades.lukedowell;
 import com.badlogic.gdx.ApplicationAdapter;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
-import com.badlogic.gdx.graphics.GL20;
-import com.badlogic.gdx.graphics.OrthographicCamera;
+import com.badlogic.gdx.graphics.*;
+import com.badlogic.gdx.graphics.Color;
+import com.badlogic.gdx.graphics.g2d.BitmapFont;
+import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 
 import java.awt.*;
 import java.util.LinkedList;
 
+import static com.badlogic.gdx.graphics.g2d.ParticleEmitter.SpawnShape.point;
 import static org.badgrades.lukedowell.BlockMap.MAP_HEIGHT;
 import static org.badgrades.lukedowell.BlockMap.MAP_WIDTH;
 
@@ -30,6 +33,10 @@ public class TetrisCloneGame extends ApplicationAdapter {
 	/** The time in millis that the most recent block was set down */
 	private static long last_time_placed = 0;
 
+	private boolean isPaused = false;
+
+	private SpriteBatch batch;
+	private BitmapFont font;
 	private OrthographicCamera camera;
 	private ShapeRenderer shapeRenderer;
 	private BlockMap blockMap;
@@ -42,6 +49,8 @@ public class TetrisCloneGame extends ApplicationAdapter {
 		shapeRenderer.setProjectionMatrix(camera.combined);
 		blockMap = new BlockMap();
 		blockMap.spawnBlock();
+		batch = new SpriteBatch();
+		font = new BitmapFont();
 	}
 
 	@Override
@@ -63,6 +72,7 @@ public class TetrisCloneGame extends ApplicationAdapter {
 
 		// SIDE TO SIDE LOGIC
 		if(Gdx.input.isKeyJustPressed(Input.Keys.LEFT)) {
+			System.out.println("LEFT");
 			Block player = blockMap.getPlayerBlock();
 			if(player != null) {
 				Point playerPos = player.getPosition();
@@ -74,6 +84,7 @@ public class TetrisCloneGame extends ApplicationAdapter {
 		}
 
 		if(Gdx.input.isKeyJustPressed(Input.Keys.RIGHT)) {
+			System.out.println("RIGHT");
 			Block player = blockMap.getPlayerBlock();
 			if(player != null) {
 				Point playerPos = player.getPosition();
@@ -84,12 +95,17 @@ public class TetrisCloneGame extends ApplicationAdapter {
 			}
 		}
 
+		// DEBUG PAUSE
+		if(Gdx.input.isKeyJustPressed(Input.Keys.P)) {
+			this.isPaused = !isPaused;
+		}
+
 		//////////////////
 		////// TICK //////
 		//////////////////
 
 		// GRAVITY
-		if(System.currentTimeMillis() - last_time_dropped >= TICK_LENGTH) {
+		if(System.currentTimeMillis() - last_time_dropped >= TICK_LENGTH && !isPaused) {
 
 			Block player = blockMap.getPlayerBlock();
 			Point playerPos = player.getPosition();
@@ -108,20 +124,55 @@ public class TetrisCloneGame extends ApplicationAdapter {
 			last_time_dropped = System.currentTimeMillis();
 		}
 
-		// ARE TIME
-		// TODO
-
 		///////////////////
 		///// DRAWING /////
 		///////////////////
 
 		// DRAW DEM BLOCKS
-		shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
-		blockMap.getActiveBlocks().forEach(this::drawBlock);
+		blockMap.getActiveBlocks().forEach(this::debugDrawBlock);
 		if(blockMap.getPlayerBlock() != null) {
-			drawBlock(blockMap.getPlayerBlock());
+			debugDrawBlock(blockMap.getPlayerBlock());
 		}
-		shapeRenderer.end();
+
+		// Display isPaused
+		if(isPaused) {
+			batch.begin();
+			font.setColor(0f, 0f, 1f, 1f);
+			font.draw(batch, "Paused", 100, 150);
+			batch.end();
+		}
+
+
+	}
+
+	/**
+	 *
+	 * @param block
+     */
+	private void debugDrawBlock(Block block) {
+		int[][] shape = block.getShape();
+		for(int x = 0; x < shape.length; x++) {
+			for(int y = 0; y < shape[0].length; y++) {
+				// This is terrible, figure out how to batch draw unfilled and filled points
+
+				int drawX = (block.getPosition().x + x) * BLOCK_SIZE; // Convert to drawing units
+				int drawY = (block.getPosition().y + y) * BLOCK_SIZE;
+				if(shape[x][y] == 1) {
+
+					shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
+					shapeRenderer.setColor(block.getType().color);
+					shapeRenderer.rect(drawX, drawY, BLOCK_SIZE, BLOCK_SIZE);
+
+				} else {
+					shapeRenderer.begin(ShapeRenderer.ShapeType.Line);
+					shapeRenderer.setColor(Color.RED);
+					shapeRenderer.rect(drawX, drawY, BLOCK_SIZE, BLOCK_SIZE);
+				}
+
+				shapeRenderer.end();
+
+			}
+		}
 	}
 
 	/**
@@ -131,25 +182,12 @@ public class TetrisCloneGame extends ApplicationAdapter {
 	 * @param block The block to draw
      */
 	private void drawBlock (Block block) {
+		shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
 		shapeRenderer.setColor(block.getType().color);
 
 		for(Point point : block.getFilledPoints(true)) {
 			shapeRenderer.rect(point.x * BLOCK_SIZE, point.y * BLOCK_SIZE, BLOCK_SIZE, BLOCK_SIZE);
 		}
-
-
-//		for(int x = 0; x < shape.length; x++) {
-//			// Convert from grid units to drawing units
-//			int drawX = (originBlockX + x) * BLOCK_SIZE;
-//
-//			for(int y = 0; y < shape[0].length; y++) {
-//				int drawY = (originBlockY + y) * BLOCK_SIZE;
-//
-//				if(shape[x][y] == 1) {
-//					// We are supposed to draw this!
-//					shapeRenderer.rect(drawX, drawY, BLOCK_SIZE, BLOCK_SIZE);
-//				}
-//			}
-//		}
+		shapeRenderer.end();
 	}
 }
