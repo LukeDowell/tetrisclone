@@ -8,8 +8,8 @@ public class DesktopLauncher {
 	public static void main (String[] arg) {
 		LwjglApplicationConfiguration config = new LwjglApplicationConfiguration();
 		config.title = "Tetris Clone";
-		config.width = 320;
-		config.height = 640;
+		config.width = (520);
+		config.height = (840);
 		new LwjglApplication(new TetrisCloneGame(), config);
 	}
 }

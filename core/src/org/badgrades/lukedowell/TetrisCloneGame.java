@@ -44,7 +44,7 @@ public class TetrisCloneGame extends ApplicationAdapter {
 	@Override
 	public void create () {
 		camera = new OrthographicCamera();
-		camera.setToOrtho(false, BLOCK_SIZE * MAP_WIDTH, BLOCK_SIZE * MAP_HEIGHT);
+		camera.setToOrtho(false, BLOCK_SIZE * MAP_WIDTH + 200, BLOCK_SIZE * MAP_HEIGHT + 200);
 		shapeRenderer = new ShapeRenderer();
 		shapeRenderer.setProjectionMatrix(camera.combined);
 		blockMap = new BlockMap();
@@ -125,6 +125,12 @@ public class TetrisCloneGame extends ApplicationAdapter {
 		///////////////////
 		///// DRAWING /////
 		///////////////////
+
+		// Map
+		shapeRenderer.begin(ShapeRenderer.ShapeType.Line);
+		shapeRenderer.setColor(Color.BLACK);
+		shapeRenderer.rect(0, 0, 320, 640);
+		shapeRenderer.end();
 
 		// DRAW DEM BLOCKS
 		blockMap.getActiveBlocks().forEach(this::debugDrawBlock);

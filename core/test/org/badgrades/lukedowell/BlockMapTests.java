@@ -16,8 +16,15 @@ import static org.junit.Assert.assertEquals;
  */
 public class BlockMapTests {
 
+
     private static BlockMap blockMap;
 
+    /**
+     * TESTS YO
+     *
+     * TODO refactor all tests to include every blocktype, not just arbitrarily chosen ones. See canBlockMove_fromSpawn
+     * @throws Exception
+     */
     @BeforeClass
     public static void setUp() throws Exception {
         blockMap = new BlockMap();
@@ -71,6 +78,35 @@ public class BlockMapTests {
     }
 
     @Test
+    public void canBlockMove_fromSpawn() throws Exception {
+        for(int i = 0; i < BlockType.values().length; i++) {
+            Block b = new Block(BlockType.values()[i]);
+            blockMap.spawnBlock(b);
+            Point dropPoint = new Point(b.getPosition().x, b.getPosition().y - 1);
+            assertEquals(true, blockMap.canBlockMoveTo(b, dropPoint));
+            blockMap.clear();
+        }
+    }
+
+    @Test
+    public void canBlockMove_dropTest() throws Exception {
+        for(int i = 0; i < BlockType.values().length; i++) {
+            Block b = new Block(BlockType.values()[i]);
+            blockMap.spawnBlock(b);
+
+            for(int y = b.getPosition().y; y > b.getCurrentHeight(); y--) {
+                Point playerPos = b.getPosition();
+                Point destPos = new Point(playerPos.x, y);
+                boolean debugResult = blockMap.canBlockMoveTo(b, destPos);
+                if(!debugResult) {
+                    assertEquals(true, blockMap.canBlockMoveTo(b, destPos));
+                }
+                b.setPosition(destPos);
+            }
+        }
+    }
+
+    @Test
     public void withinBoundsTest_inside() throws Exception {
 
     }
@@ -101,9 +137,29 @@ public class BlockMapTests {
     @Test
     public void blockWidthTest_iBlock() throws Exception {
         Block iBlock = new Block(BlockType.I);
+        Block sBlock = new Block(BlockType.S);
+
 
         assertEquals(4, iBlock.getCurrentWidth());
         iBlock.rotateClockwise();
         assertEquals(1, iBlock.getCurrentWidth());
+
+        assertEquals(2, sBlock.getCurrentWidth());
+        sBlock.rotateClockwise();
+        assertEquals(3, sBlock.getCurrentWidth());
+    }
+
+    @Test
+    public void blockHeightTest() throws Exception {
+        Block iBlock = new Block(BlockType.I);
+        Block sBlock = new Block(BlockType.S);
+
+        assertEquals(1, iBlock.getCurrentHeight());
+        iBlock.rotateClockwise();
+        assertEquals(4, iBlock.getCurrentHeight());
+
+        assertEquals(3, sBlock.getCurrentHeight());
+        sBlock.rotateClockwise();
+        assertEquals(2, sBlock.getCurrentHeight());
     }
 }

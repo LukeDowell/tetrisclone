@@ -72,6 +72,28 @@ public class Block {
         return (mostRightPoint.x - mostLeftPoint.x) + 1;
     }
 
+    /**
+     * Since blocks can be rotated their 'height' changes. This method
+     * calculates the difference between the highest point and the lowest
+     * point from a list of filled points.
+     * @return
+     */
+    public int getCurrentHeight() {
+        Point highestPoint = new Point(0, 0);
+        Point lowestPoint = new Point(0, 0);
+
+        List<Point> points = getFilledPoints(false);
+        for(Point p : points) {
+            if(p.y > highestPoint.y)
+                highestPoint = p;
+
+            if(p.y < lowestPoint.y)
+                lowestPoint = p;
+        }
+
+        return (highestPoint.y - lowestPoint.y) + 1;
+    }
+
 
     public BlockType getType() {
         return type;

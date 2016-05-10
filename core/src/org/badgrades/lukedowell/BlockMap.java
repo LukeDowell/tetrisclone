@@ -53,9 +53,11 @@ public class BlockMap {
 
         // Remove the block we are checking against, then return true if none of the remaining blocks collide
         // with our potential future block.
-        return activeBlocks.stream()
+
+        boolean bool = activeBlocks.stream()
                 .filter(block -> !b.equals(block)) // Don't check collisions against itself
                 .noneMatch(doesCollidePredicate);
+        return bool;
     }
 
     /**
@@ -64,11 +66,17 @@ public class BlockMap {
      * @return
      */
     public boolean isWithinBounds(Block b) {
-        // Different shapes have different widths
+        // Different shapes have different widths, so we calculate this to offset our distance from the right wall
         int widthOffset = b.getCurrentWidth();
 
+        // We want to allow the shape to spawn offscreen and then drop into view
+        int heightOffset = b.getCurrentHeight();
+
         for(Point p : b.getFilledPoints(true)) {
-            if(p.x > MAP_WIDTH - widthOffset || p.x < 0 || p.y < 0 || p.y > MAP_HEIGHT + 4) {
+            if(p.x > MAP_WIDTH  ||
+                    p.x < 0 ||
+                    p.y < 0 ||
+                    p.y > (MAP_HEIGHT + heightOffset)) {
                 return false;
             }
         }
@@ -84,12 +92,18 @@ public class BlockMap {
         return activeBlocks;
     }
 
-    public void spawnBlock() {
-        this.spawnBlock(blockQueue.pop());
+    public boolean spawnBlock() {
+        if(blockQueue.size() > 0) {
+            this.spawnBlock(blockQueue.pop());
+            return true;
+        }
+        return false;
     }
 
     public void spawnBlock(Block b) {
-        Point spawnPoint = new Point(4, 22);
+        int spawnX = (int) Math.floor(BlockMap.MAP_WIDTH / 2);
+        int spawnY = (b.getCurrentHeight() + BlockMap.MAP_HEIGHT);
+        Point spawnPoint = new Point(spawnX, spawnY);
         b.setPosition(spawnPoint);
         activeBlocks.add(b);
     }
